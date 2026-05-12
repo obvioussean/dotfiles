@@ -53,4 +53,15 @@ else
   git_with_pat clone --quiet --depth 1 "${clone_url}" "${DEST}"
 fi
 
+## Scrub any node_modules / package-lock.json that might have been brought
+## over from a non-Linux machine. The Copilot CLI's bundled MCP servers will
+## reinstall their native deps for the codespace's arch on first launch;
+## leaving Mac-built binaries in place triggers npm's optional-deps bug
+## (https://github.com/npm/cli/issues/4828) with "Cannot find native binding".
+if [[ -d "${DEST}/installed-plugins" ]]; then
+  log "Scrubbing pre-built node_modules under installed-plugins/."
+  find "${DEST}/installed-plugins" -type d -name node_modules -prune -exec rm -rf {} + 2>/dev/null || true
+  find "${DEST}/installed-plugins" -type f -name package-lock.json -delete 2>/dev/null || true
+fi
+
 log "Done. ~/.copilot is ready."
