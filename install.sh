@@ -14,23 +14,6 @@ readonly DEST="${HOME}/.copilot"
 log() { printf '[dotfiles] %s\n' "$*"; }
 warn() { printf '[dotfiles] WARN: %s\n' "$*" >&2; }
 
-# TEMP: Skip the ~/.copilot clone in Codespaces.
-#
-# Something in ~/.copilot (likely the skills/ tree or settings.json) triggers
-# the Copilot CLI to start MCP servers, which loads a native runtime binding
-# prebuilt against GLIBC 2.33+. github/github codespaces (and any others
-# pinned to Ubuntu 20.04) ship GLIBC 2.31, so the .node fails to dlopen with
-# "Cannot find native binding". Until that's resolved upstream — or we bisect
-# which specific file is the trigger and exclude it — bail out cleanly so the
-# CLI can at least launch in Codespaces.
-#
-# Set FORCE_COPILOT_DOTFILES=1 to override (e.g. on a newer-base codespace).
-if [[ "${CODESPACES:-}" == "true" && "${FORCE_COPILOT_DOTFILES:-}" != "1" ]]; then
-  log "Codespaces detected; skipping ~/.copilot clone (GLIBC compatibility — see install.sh)."
-  log "Set FORCE_COPILOT_DOTFILES=1 to override."
-  exit 0
-fi
-
 if [[ -z "${OBVIOUSSEAN_PAT:-}" ]]; then
   warn "OBVIOUSSEAN_PAT is not set; skipping ${REPO} clone."
   warn "Add it as a Codespaces user secret at https://github.com/settings/codespaces"
